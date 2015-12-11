@@ -2,11 +2,11 @@
 Arkadiusz Rusin  
 21 listopada 2015  
 
-grudzień 11, 2015
+grudzień 12, 2015
 
 ## 0. Analiza wyników
 
-Analizując badany zbiór danych opisujący poszczególne ligandy, można było zauważyć wiele zależności między poszczególnymi zmiennymi opisujących poszczególne wystąpienia ligandu. Niektóre zmienne, przechowywały wartości stałe, które nie niosły ze sobą wartościowej informacji w eksploracji danych, inne zmienne opisywały wyliczone wcześniej atrybuty, bądź odnosicły się do poprawności pliku PDB. Jednym z postawionych wniosków było to, że niektóre zmienne były ze sobą silnie powiązane, niektóre zmienne opisywały tą samą informację, różniąc sie jedynie progiem odcięcia. Analizując dane można było także stworzyć pewne modele klasyfikacyjne, a także modele regresji, które ułatwiały predykcję innych wartości.
+Analizując badany zbiór danych opisujący poszczególne ligandy, można było zauważyć wiele zależności między poszczególnymi kolumnami. Niektóre zmienne, przechowywały wartości stałe, które nie niosły ze sobą wartościowej informacji w eksploracji danych, inne zmienne opisywały wyliczone wcześniej atrybuty, bądź odnosiły się do poprawności pliku PDB. Jednym z wniosków po wykonaniu badań było to, że niektóre zmienne były ze sobą silnie powiązane. Niektóre zmienne opisywały tą samą informację fizyczną, różniąc sie jedynie progiem odcięcia, tym samym były ze sobą silnie powiązane, lecz to nie niosło żadnej wartościowej informacji. Analizując dane można było stworzyć pewne modele klasyfikacyjne, a także modele regresji, które ułatwiały predykcję innych wartości.
 
 ## 1. Kod wyliczający wykorzystane biblioteki.
 
