@@ -2,6 +2,8 @@
 Arkadiusz Rusin  
 21 listopada 2015  
 
+grudzień 11, 2015
+
 ## 1. Kod wyliczający wykorzystane biblioteki.
 
 
@@ -198,6 +200,10 @@ dane <- dane %>%
 ***
 
 ## 7. Sekcje sprawdzającą korelacje między zmiennymi; sekcja ta powinna zawierać jakąś formę graficznej prezentacji korelacji
+
+***
+
+Poniższe korelogramy reprezentują korelację między poszczególnymi zmiennymi. Zbiór wszystkich kolumn, dla analizowanych danych, jest bardzo duży, dlatego po wnikliwej analizie, można było zauważyć, że kolumny part_XX niosą tą samą informację, jednak dla innego progu odcięcia. Dlatego, aby ograniczyć zbiór porównywanych zmiennych, kolumny podzielone zostały na zbiór zmiennych ogólnych (nie zawierających kolumn part), a także na rozłączne zbiory part. Korelacja nie była liczona dla dwóch różnych zbiorów part (np. między part01 i part02), a jedynie wewnątrz poszczególnych zbiorów part i atrybutów ogólnych. 
 
 ### Przygotowanie danych
 
@@ -474,6 +480,8 @@ podsumowanie <- dane %>%
 
 Liczba wszystkich klas `res_name` wynosi: ** 2685 **
 
+Liczba ta jest bardzo duża, dlatego na poniższym wykresie przedstawione zostało 20 najliczniejszych klas.
+
 ### Wykres 20 najliczniejszych klasy 
 
 
@@ -502,6 +510,13 @@ ggplot(rozk, aes(x = values)) + geom_density(aes(group=ind, colour=ind, fill=ind
 ```
 
 ![](ZED-Raport_files/figure-html/Rozklad-1.png) 
+
+***
+
+Analizując powyższy wykres, można zauważyć, że: 
+
+* rozkład liczby atomów jest bardziej skoncentrowany i mieści się w przedziale od 1 do 104. Alanizując natomiast pierwszy (1) i trzeci (20) kwartyl widzimy, że liczba atomów jest o wiele bardziej skupiona prz wartościach minimalnych. Mediana i średnia dla zmiennej `local_res_atom_non_h_count` wynosza odpowiednio 7 i 13.43
+* liczba elektronów obejmuje przedział od 3 do 800. Wartości `local_res_atom_non_h_electron_sum` są bardziej rozrzucone. Jednak analizując pierwszy (30) i trzeci (145) kwartyl widzimy, że wartości te są skoncetrowane bliżej średniej (101.5) i mediany (55), dlatego też na wykresie widać długi "ogon"
 
 ## 10. Próbę odtworzenia następującego wykresu (oś X - liczba elektronów, oś y - liczba atomów)
 
@@ -538,6 +553,8 @@ ggExtra::ggMarginal(
 ```
 
 ![](ZED-Raport_files/figure-html/Rozklad2-1.png) 
+
+Do stworzenia wykresu, wykozystana została biblioteka `ggplot2` i `ggEkstra`. Druga wymieniona biblioteka umożliwiła stowrzenie wykresów na poszczególnych osiach. Do pokolorowania rozkładu wykorzystana została biblioteka `RColorBrewer`, z której skorzystano z typu kolorów `Spectral`. Należało go jednak odwrócić. Aby dokładniej przeanalizowac dane, które były skupione blisko wartości zerowych, wykorzystany został `jitter`.
 
 ## 11. Tabelę pokazującą 10 klas z największą niezgodnością liczby atomów (local_res_atom_non_h_count vs dict_atom_non_h_count) i tabelę pokazującą 10 klas z największą niezgodnością liczby elektronów (local_res_atom_non_h_electron_sum vs dict_atom_non_h_electron_sum;)
 
@@ -629,9 +646,18 @@ for(i in seq_along(part)) {
 
 ![](ZED-Raport_files/figure-html/RozkladKolumnPart02-1.png) ![](ZED-Raport_files/figure-html/RozkladKolumnPart02-2.png) ![](ZED-Raport_files/figure-html/RozkladKolumnPart02-3.png) ![](ZED-Raport_files/figure-html/RozkladKolumnPart02-4.png) ![](ZED-Raport_files/figure-html/RozkladKolumnPart02-5.png) ![](ZED-Raport_files/figure-html/RozkladKolumnPart02-6.png) ![](ZED-Raport_files/figure-html/RozkladKolumnPart02-7.png) ![](ZED-Raport_files/figure-html/RozkladKolumnPart02-8.png) ![](ZED-Raport_files/figure-html/RozkladKolumnPart02-9.png) ![](ZED-Raport_files/figure-html/RozkladKolumnPart02-10.png) ![](ZED-Raport_files/figure-html/RozkladKolumnPart02-11.png) ![](ZED-Raport_files/figure-html/RozkladKolumnPart02-12.png) ![](ZED-Raport_files/figure-html/RozkladKolumnPart02-13.png) ![](ZED-Raport_files/figure-html/RozkladKolumnPart02-14.png) ![](ZED-Raport_files/figure-html/RozkladKolumnPart02-15.png) ![](ZED-Raport_files/figure-html/RozkladKolumnPart02-16.png) ![](ZED-Raport_files/figure-html/RozkladKolumnPart02-17.png) ![](ZED-Raport_files/figure-html/RozkladKolumnPart02-18.png) ![](ZED-Raport_files/figure-html/RozkladKolumnPart02-19.png) ![](ZED-Raport_files/figure-html/RozkladKolumnPart02-20.png) ![](ZED-Raport_files/figure-html/RozkladKolumnPart02-21.png) ![](ZED-Raport_files/figure-html/RozkladKolumnPart02-22.png) ![](ZED-Raport_files/figure-html/RozkladKolumnPart02-23.png) ![](ZED-Raport_files/figure-html/RozkladKolumnPart02-24.png) ![](ZED-Raport_files/figure-html/RozkladKolumnPart02-25.png) ![](ZED-Raport_files/figure-html/RozkladKolumnPart02-26.png) ![](ZED-Raport_files/figure-html/RozkladKolumnPart02-27.png) ![](ZED-Raport_files/figure-html/RozkladKolumnPart02-28.png) ![](ZED-Raport_files/figure-html/RozkladKolumnPart02-29.png) ![](ZED-Raport_files/figure-html/RozkladKolumnPart02-30.png) ![](ZED-Raport_files/figure-html/RozkladKolumnPart02-31.png) ![](ZED-Raport_files/figure-html/RozkladKolumnPart02-32.png) ![](ZED-Raport_files/figure-html/RozkladKolumnPart02-33.png) ![](ZED-Raport_files/figure-html/RozkladKolumnPart02-34.png) ![](ZED-Raport_files/figure-html/RozkladKolumnPart02-35.png) ![](ZED-Raport_files/figure-html/RozkladKolumnPart02-36.png) ![](ZED-Raport_files/figure-html/RozkladKolumnPart02-37.png) ![](ZED-Raport_files/figure-html/RozkladKolumnPart02-38.png) ![](ZED-Raport_files/figure-html/RozkladKolumnPart02-39.png) ![](ZED-Raport_files/figure-html/RozkladKolumnPart02-40.png) ![](ZED-Raport_files/figure-html/RozkladKolumnPart02-41.png) ![](ZED-Raport_files/figure-html/RozkladKolumnPart02-42.png) ![](ZED-Raport_files/figure-html/RozkladKolumnPart02-43.png) ![](ZED-Raport_files/figure-html/RozkladKolumnPart02-44.png) ![](ZED-Raport_files/figure-html/RozkladKolumnPart02-45.png) ![](ZED-Raport_files/figure-html/RozkladKolumnPart02-46.png) ![](ZED-Raport_files/figure-html/RozkladKolumnPart02-47.png) ![](ZED-Raport_files/figure-html/RozkladKolumnPart02-48.png) ![](ZED-Raport_files/figure-html/RozkladKolumnPart02-49.png) ![](ZED-Raport_files/figure-html/RozkladKolumnPart02-50.png) ![](ZED-Raport_files/figure-html/RozkladKolumnPart02-51.png) ![](ZED-Raport_files/figure-html/RozkladKolumnPart02-52.png) ![](ZED-Raport_files/figure-html/RozkladKolumnPart02-53.png) ![](ZED-Raport_files/figure-html/RozkladKolumnPart02-54.png) ![](ZED-Raport_files/figure-html/RozkladKolumnPart02-55.png) ![](ZED-Raport_files/figure-html/RozkladKolumnPart02-56.png) ![](ZED-Raport_files/figure-html/RozkladKolumnPart02-57.png) ![](ZED-Raport_files/figure-html/RozkladKolumnPart02-58.png) ![](ZED-Raport_files/figure-html/RozkladKolumnPart02-59.png) ![](ZED-Raport_files/figure-html/RozkladKolumnPart02-60.png) ![](ZED-Raport_files/figure-html/RozkladKolumnPart02-61.png) ![](ZED-Raport_files/figure-html/RozkladKolumnPart02-62.png) ![](ZED-Raport_files/figure-html/RozkladKolumnPart02-63.png) ![](ZED-Raport_files/figure-html/RozkladKolumnPart02-64.png) ![](ZED-Raport_files/figure-html/RozkladKolumnPart02-65.png) ![](ZED-Raport_files/figure-html/RozkladKolumnPart02-66.png) ![](ZED-Raport_files/figure-html/RozkladKolumnPart02-67.png) ![](ZED-Raport_files/figure-html/RozkladKolumnPart02-68.png) ![](ZED-Raport_files/figure-html/RozkladKolumnPart02-69.png) 
 
+Powyższe wykresy pokazują rozkład poszczególnych zmiennych dla Part_01. Patrząc na wcześniejsze podsumowanie surowych danych, można zauważyć, że kolumny te posiadały bardzo dużą liczbę wartości pustych, które w dalszej części zostały także zamienione na wartość 0 (stąd też widoczne wysokie rozkłady wartości w okolicach 0)
+
 ## 13. Sekcję sprawdzającą czy na podstawie wartości innych kolumn można przewidzieć liczbę elektronów i atomów oraz z jaką dokładnością można dokonać takiej predykcji; trafność regresji powinna zostać oszacowana na podstawie miar R^2 i RMSE;
 
 ### Przewidywanie liczby atomów
+
+***
+
+Do przewidywania liczby atomów wykorzystany został mogel regresji liniowej. 
+Dodatkowo, porównany został sposób uczenia modelu regresji z wykorzystaniem standardowego próbkowania i walidacji krzyżowej. Analizując dalsze wyniki, oba podejścia nie zmieniły uzyskanych wyników.
+Do analizy atrybutów wykorzystane zostały wszystkie zmienna oprócz zmiennych słownikowych (dist_)
+
 
 ***
 
@@ -649,6 +675,16 @@ training <- proba[ inTraining,]
 testing <- proba[ -inTraining,]
 ```
 
+#####Dla podstawowego modelu `"lm"`
+
+
+```r
+lmFit <- train(local_res_atom_non_h_count ~ . , 
+               method="lm", 
+               data = training)
+```
+
+#####Dla modelu `"lm"` z Cross-Validation
 
 
 ```r
@@ -661,22 +697,9 @@ lmCVFit <- train(local_res_atom_non_h_count ~ . ,
 ```
 
 
-```r
-lmFit <- train(local_res_atom_non_h_count ~ . , 
-               method="lm", 
-               data = training)
-```
+#### Lista najbardziej wartościowych atrybutów 
 
-#### Lista najbardziej wartościowych atrybutów
-
-
-```r
-plot(varImp(lmCVFit), top = 20)
-```
-
-![](ZED-Raport_files/figure-html/RegresjaLiczbaAtomowVarImportance-1.png) 
-
-LM:
+#####Dla podstawowego modelu `"lm"`
 
 
 ```r
@@ -685,35 +708,72 @@ plot(varImp(lmFit), top = 20)
 
 ![](ZED-Raport_files/figure-html/RegresjaLiczbaAtomowVarImportanceLM-1.png) 
 
-#### Trafność regresji
-
-***
-
-##### Miara R2
+#####Dla modelu `"lm"` z Cross-Validation
 
 
 ```r
-summary(lmCVFit)$r.squared
+plot(varImp(lmCVFit), top = 20)
 ```
 
-```
-## [1] 0.9995181
-```
+![](ZED-Raport_files/figure-html/RegresjaLiczbaAtomowVarImportance-1.png) 
 
-##### Miara RMSE
+
+#### Trafność regresji 
+
+***
+
+##### Miara RMSE i R^2 dla podstawowego modelu `"lm"`
 
 
 ```r
-summary(lmCVFit)$sigma
+predVal<-predict(lmFit, testing)
 ```
 
 ```
-## [1] 0.323999
+## Warning in predict.lm(modelFit, newdata): prediction from a rank-deficient
+## fit may be misleading
+```
+
+```r
+modelvalues<-data.frame(obs = testing$local_res_atom_non_h_count, pred=predVal)
+
+defaultSummary(modelvalues)
+```
+
+```
+##      RMSE  Rsquared 
+## 1.4232369 0.9904637
+```
+
+
+##### Miara RMSE i R^2dla modelu `"lm"` z Cross-Validation
+
+
+```r
+predVal<-predict(lmCVFit, testing)
+```
+
+```
+## Warning in predict.lm(modelFit, newdata): prediction from a rank-deficient
+## fit may be misleading
+```
+
+```r
+modelvalues<-data.frame(obs = testing$local_res_atom_non_h_count, pred=predVal)
+
+defaultSummary(modelvalues)
+```
+
+```
+##      RMSE  Rsquared 
+## 1.4232369 0.9904637
 ```
 
 ***
 
-#### Wykres predykcji wartości
+#### Wykres predykcji wartości 
+
+#####Dla podstawowego modelu `"lm"`
 
 
 
@@ -730,9 +790,28 @@ predictedValues <- predict(lmFit)
 plot(training$local_res_atom_non_h_count, predictedValues)
 ```
 
+![](ZED-Raport_files/figure-html/RegresjaLiczbaAtomowPredValPlotLM-1.png) 
+
+
+#####Dla modelu `"lm"` z Cross-Validation
+
+
+
+```r
+predictedValues <- predict(lmCVFit)
+```
+
+```
+## Warning in predict.lm(modelFit, newdata): prediction from a rank-deficient
+## fit may be misleading
+```
+
+```r
+plot(training$local_res_atom_non_h_count, predictedValues)
+```
+
 ![](ZED-Raport_files/figure-html/RegresjaLiczbaAtomowPredValPlot-1.png) 
 
-LM:
 
 ***
 ***
@@ -756,6 +835,17 @@ training <- proba[ inTraining,]
 testing <- proba[ -inTraining,]
 ```
 
+#####Dla podstawowego modelu `"lm"`
+
+
+```r
+lmFit <- train(local_res_atom_non_h_electron_sum ~ . , 
+               method="lm", 
+               data = training)
+```
+
+#####Dla modelu `"lm"` z Cross-Validation
+
 
 ```r
 ctrl <- trainControl(method = "cv", number = 10)
@@ -766,7 +856,19 @@ lmCVFit <- train(local_res_atom_non_h_electron_sum ~ . ,
                  trControl = ctrl)
 ```
 
-#### Lista najbardziej wartościowych atrybutów
+
+#### Lista najbardziej wartościowych atrybutów 
+
+#####Dla podstawowego modelu `"lm"`
+
+
+```r
+plot(varImp(lmFit), top = 20)
+```
+
+![](ZED-Raport_files/figure-html/RegresjaLiczbaElektronowVarImportanceLM-1.png) 
+
+#####Dla modelu `"lm"` z Cross-Validation
 
 
 ```r
@@ -775,42 +877,108 @@ plot(varImp(lmCVFit), top = 20)
 
 ![](ZED-Raport_files/figure-html/RegresjaLiczbaElektronowVarImportance-1.png) 
 
-#### Trafność regresji
+
+#### Trafność regresji 
 
 ***
 
-##### Miara R2
+##### Miara RMSE i R^2 dla podstawowego modelu `"lm"`
 
 
 ```r
-summary(lmCVFit)$r.squared
+predVal<-predict(lmFit, testing)
 ```
 
 ```
-## [1] 0.9986886
+## Warning in predict.lm(modelFit, newdata): prediction from a rank-deficient
+## fit may be misleading
 ```
 
-##### Miara RMSE
+```r
+modelvalues<-data.frame(obs = testing$local_res_atom_non_h_electron_sum, pred=predVal)
+
+defaultSummary(modelvalues)
+```
+
+```
+##        RMSE    Rsquared 
+## 120.1233936   0.4140984
+```
+
+
+##### Miara RMSE i R^2dla modelu `"lm"` z Cross-Validation
 
 
 ```r
-summary(lmCVFit)$sigma
+predVal<-predict(lmCVFit, testing)
 ```
 
 ```
-## [1] 3.599638
+## Warning in predict.lm(modelFit, newdata): prediction from a rank-deficient
+## fit may be misleading
+```
+
+```r
+modelvalues<-data.frame(obs = testing$local_res_atom_non_h_electron_sum, pred=predVal)
+
+defaultSummary(modelvalues)
+```
+
+```
+##        RMSE    Rsquared 
+## 120.1233936   0.4140984
 ```
 
 ***
 
-#### Wykres predykcji wartości
+#### Wykres predykcji wartości 
 
+#####Dla podstawowego modelu `"lm"`
+
+
+
+```r
+predictedValues <- predict(lmFit)
+```
+
+```
+## Warning in predict.lm(modelFit, newdata): prediction from a rank-deficient
+## fit may be misleading
+```
+
+```r
+plot(training$local_res_atom_non_h_electron_sum, predictedValues)
+```
+
+![](ZED-Raport_files/figure-html/RegresjaLiczbaElektronowPredValPlotLM-1.png) 
+
+
+#####Dla modelu `"lm"` z Cross-Validation
+
+
+
+```r
+predictedValues <- predict(lmCVFit)
+```
+
+```
+## Warning in predict.lm(modelFit, newdata): prediction from a rank-deficient
+## fit may be misleading
+```
+
+```r
+plot(training$local_res_atom_non_h_electron_sum, predictedValues)
+```
+
+![](ZED-Raport_files/figure-html/RegresjaLiczbaElektronowPredValPlot-1.png) 
 
 
 ***
 ***
 
 ## 14. Sekcję próbującą stworzyć klasyfikator przewidujący wartość atrybutu res_name (w tej sekcji należy wykorzystać wiedzę z pozostałych punktów oraz wykonać dodatkowe czynności, które mogą poprawić trafność klasyfikacji); trafność klasyfikacji powinna zostać oszacowana na danych inne niż uczące za pomocą mechanizmu (stratyfikowanej!) oceny krzyżowej lub (stratyfikowanego!) zbioru testowego.
+
+Do stworzenia klasyfikatora dla zmiennej `res_name`, wykorzystano wiedzę uzyskaną z powyższych badań.
 
 ### Przygotowanie danych do klasyfikacji
 
@@ -842,6 +1010,7 @@ training <- descr[inTrain,]
 testing <- descr[-inTrain,]
 ```
 
+###Filtrowanie zmiennych
 
 
 ```r
@@ -879,6 +1048,8 @@ res_name_training <- res_name_training %>% mutate(name = paste("name_", res_name
 res_name_testing <- res_name_testing %>% mutate(name = paste("name_", res_name, sep="")) %>% select(name)
 ```
 
+###Pre-Processing
+
 
 ```r
 xTrans <- preProcess(training)
@@ -892,6 +1063,7 @@ training <- data.frame(res_name_training, training)
 testing <- data.frame(res_name_testing, testing)
 ```
 
+###Zmienne kontrolne
 
 
 ```r
@@ -904,8 +1076,15 @@ gbmGrid <- expand.grid(interaction.depth = c(1, 5, 10),
 ctrl <- trainControl(method = "repeatedcv", 
                      number = 2,
                      repeats = 5)
+
+rfGrid <- expand.grid(mtry = c(10:15))
 ```
 
+###Uczenie klasyfikatora 
+
+***
+
+####Dla algorytmu GBM
 
 
 ```r
@@ -917,6 +1096,22 @@ gbmFit <- train(name~.,
                 bag.fraction = 0.5, 
                 tuneGrid = gbmGrid)
 ```
+
+####Dla algorytmu Random Forest
+
+
+```r
+rfFit <- train(name~., 
+                data = training,
+                method = "rf", 
+                trControl = ctrl,  
+                tuneGrid = rfGrid,
+                ntree = 30)
+```
+
+###Wykresy podsumowania
+
+####Dla algorytmu GBM
 
 
 ```r
@@ -946,6 +1141,33 @@ resampleHist(gbmFit)
 
 ![](ZED-Raport_files/figure-html/KlasyfikacjaPodsumowanieGbmWykres4-1.png) 
 
+####Dla algorytmu Random Forest
+
+
+```r
+plot(rfFit)
+```
+
+![](ZED-Raport_files/figure-html/KlasyfikacjaPodsumowanieGbmWykres1RF-1.png) 
+
+
+```r
+plot(rfFit, metric = "Kappa")
+```
+
+![](ZED-Raport_files/figure-html/KlasyfikacjaPodsumowanieGbmWykres2RF-1.png) 
+
+
+
+```r
+resampleHist(rfFit)
+```
+
+![](ZED-Raport_files/figure-html/KlasyfikacjaPodsumowanieGbmWykres4RF-1.png) 
+
+###Podsumowanie predykcji modeli
+
+####Dla algorytmu GBM
 
 
 ```r
@@ -956,12 +1178,12 @@ gbmPred <- predict(gbmFit, testing)
 ```r
 matrix <- as.matrix(confusionMatrix(gbmPred, testing$name))
 
-kable(matrix, digits = 3, caption = "Confusion Matrix")
+kable(matrix, digits = 3, caption = "Confusion Matrix dla GBM")
 ```
 
 
 
-Table: Confusion Matrix
+Table: Confusion Matrix dla GBM
 
             name_ACT   name_ADP   name_ATP   name_BME   name_CA   name_CD   name_CIT   name_CL   name_CO   name_CU   name_EDO   name_EPE   name_FAD   name_FE   name_FE2   name_FMN   name_GDP   name_GOL   name_HEM   name_K   name_MAN   name_MES   name_MG   name_MN   name_MPD   name_NA   name_NAD   name_NAG   name_NAP   name_NDP   name_NI   name_PEG   name_PG4   name_PLP   name_PO4   name_SAH   name_SEP   name_SO4   name_TRS   name_ZN
 ---------  ---------  ---------  ---------  ---------  --------  --------  ---------  --------  --------  --------  ---------  ---------  ---------  --------  ---------  ---------  ---------  ---------  ---------  -------  ---------  ---------  --------  --------  ---------  --------  ---------  ---------  ---------  ---------  --------  ---------  ---------  ---------  ---------  ---------  ---------  ---------  ---------  --------
@@ -1005,3 +1227,64 @@ name_SEP           0          0          0          0         2         0       
 name_SO4           6          2          0          0        24         2          1        19         2         1          4          3          0         3          0          0          0         11          0        4          0          6        14         1          0         9          0          0          0          1         3          0          1          0         37          0          1        212          1        16
 name_TRS           1          0          0          0         0         0          0         0         0         0          0          0          0         0          0          0          0          2          0        0          0          0         2         0          0         1          0          1          0          0         0          0          0          0          0          0          0          0          1         0
 name_ZN            1          0          1          0         8         8          0         0         7        14          0          0          0        11          7          0          0          0          3        0          0          0         2        16          0         0          0          0          0          0         6          0          0          1          7          0          1          7          0       134
+
+####Dla algorytmu Random Forest
+
+
+```r
+rfPred <- predict(rfFit, testing)
+```
+
+
+```r
+matrix <- as.matrix(confusionMatrix(rfPred, testing$name))
+
+kable(matrix, digits = 3, caption = "Confusion Matrix dla Random Forest")
+```
+
+
+
+Table: Confusion Matrix dla Random Forest
+
+            name_ACT   name_ADP   name_ATP   name_BME   name_CA   name_CD   name_CIT   name_CL   name_CO   name_CU   name_EDO   name_EPE   name_FAD   name_FE   name_FE2   name_FMN   name_GDP   name_GOL   name_HEM   name_K   name_MAN   name_MES   name_MG   name_MN   name_MPD   name_NA   name_NAD   name_NAG   name_NAP   name_NDP   name_NI   name_PEG   name_PG4   name_PLP   name_PO4   name_SAH   name_SEP   name_SO4   name_TRS   name_ZN
+---------  ---------  ---------  ---------  ---------  --------  --------  ---------  --------  --------  --------  ---------  ---------  ---------  --------  ---------  ---------  ---------  ---------  ---------  -------  ---------  ---------  --------  --------  ---------  --------  ---------  ---------  ---------  ---------  --------  ---------  ---------  ---------  ---------  ---------  ---------  ---------  ---------  --------
+name_ACT           9          0          0          0         0         0          0         2         0         0          1          1          0         0          0          0          0          3          0        0          0          0         1         0          0         0          0          1          0          0         0          0          0          1          1          0          0          4          0         0
+name_ADP           0         11          7          0         0         0          0         0         0         0          0          0          1         1          0          1          9          0          0        0          0          0         1         2          0         0          4          0          0          3         0          0          0          0          0          1          0          0          0         0
+name_ATP           0          7          8          0         1         0          0         0         0         0          0          0          0         0          0          0          1          0          0        0          0          0         0         2          0         0          1          0          0          0         0          0          0          0          0          4          0          0          0         0
+name_BME           0          0          0          2         0         0          0         0         0         0          0          0          0         0          0          0          0          1          0        0          0          0         0         0          0         1          0          0          0          0         0          0          0          0          0          0          0          0          0         0
+name_CA            1          1          2          1        80         1          1         3         0         5          0          1          0         7          2          0          0          2          1        1          0          0         7         8          0         3          0          0          1          0         1          0          0          0          4          0          1          7          0        16
+name_CD            0          0          0          0         0         7          0         0         0         0          0          0          0         0          0          0          0          0          0        0          0          0         0         0          0         0          0          0          0          0         1          0          0          0          0          0          0          0          0         0
+name_CIT           0          0          0          0         1         0          1         0         0         0          0          0          0         0          0          0          0          0          0        0          1          0         0         0          0         1          0          1          0          0         0          0          0          0          0          0          0          0          0         1
+name_CL            7          0          0          0         6         1          0        47         1         0          3          0          0         1          0          0          0          6          0       12          2          0         3         0          0         7          0          0          0          0         0          1          0          0          3          0          0         14          0         2
+name_CO            0          0          0          0         0         0          0         0         2         0          0          0          0         0          1          0          0          0          0        0          0          0         0         0          0         0          0          0          0          0         0          0          0          0          0          0          0          0          0         0
+name_CU            0          0          0          0         0         0          0         0         0         1          0          0          0         0          0          0          0          0          0        0          0          0         0         1          0         0          0          0          0          0         0          0          0          0          0          0          0          0          0         2
+name_EDO           3          0          0          1         1         0          0         0         0         0         12          0          0         0          0          0          0         15          0        1          1          0         3         1          0         1          0          0          0          0         0          3          0          0          1          0          0          5          0         0
+name_EPE           0          0          0          0         1         0          0         0         0         0          0          3          0         0          0          0          0          0          0        0          0          1         0         0          0         1          0          2          0          0         0          0          0          0          0          0          0          0          0         0
+name_FAD           0          2          0          0         0         0          0         0         0         1          0          0         31         0          0          0          2          0          1        0          0          0         1         0          0         0          1          1          5          1         0          0          0          0          0          0          0          0          0         1
+name_FE            1          0          0          0         0         0          0         0         0         0          0          0          0         2          0          0          0          0          0        0          0          0         0         1          0         0          0          0          0          0         0          0          0          0          0          0          0          0          0         4
+name_FE2           0          0          0          0         0         0          0         0         0         0          0          0          0         0          0          0          0          0          0        0          0          0         0         0          0         0          0          0          0          0         0          0          0          0          0          0          0          0          0         0
+name_FMN           0          0          0          0         0         0          0         0         0         0          0          0          2         0          0          9          0          0          0        0          0          0         0         0          0         0          0          1          1          0         0          0          0          0          0          0          0          0          0         0
+name_GDP           0          1          1          0         1         0          0         0         0         0          0          0          0         0          0          0          1          0          0        0          0          0         0         1          0         0          0          0          0          0         0          0          0          0          0          0          0          0          0         0
+name_GOL           8          3          0         11        11         0          6        16         1         0         45          4          2         1          0          0          0        136          0        6          4          4        22         0         11        21          0         11          0          0         2         13          8          0          7          0          2         15          7         8
+name_HEM           0          0          0          0         0         0          0         0         0         0          0          0          0         0          1          1          0          0         65        0          0          0         0         1          0         0          0          2          0          0         0          0          0          1          0          0          0          0          0         2
+name_K             0          0          0          0         0         0          0         1         0         0          0          0          0         0          0          0          0          0          0        1          0          0         0         0          0         0          0          0          0          0         0          0          0          0          0          0          0          0          0         0
+name_MAN           0          0          0          0         0         0          0         0         0         0          0          0          0         0          0          0          0          0          0        0          2          0         0         0          0         0          0          0          0          0         0          0          0          0          0          0          0          0          0         0
+name_MES           0          0          0          0         2         0          0         1         0         0          0          3          0         0          0          0          0          0          0        0          0          2         0         0          0         0          0          0          0          0         0          0          0          0          1          0          0          0          0         0
+name_MG            0          2          2          0        11         1          2         5         0         0          1          1          0         0          0          0          0          6          0        1          2          0        32         3          1         6          1          2          1          1         0          0          0          0          2          0          1          9          4         4
+name_MN            0          1          0          0         3         1          0         0         2         0          0          0          0         0          1          0          0          0          1        0          0          0         3         5          0         2          0          0          1          0         1          0          0          0          1          0          0          0          0         2
+name_MPD           0          0          0          0         0         0          0         0         0         0          0          0          0         0          0          0          0          0          0        0          0          0         0         0          0         0          0          0          0          0         0          0          0          0          0          0          0          0          0         0
+name_NA            3          0          0          0         1         0          0         1         0         0          1          0          0         0          0          0          0          2          0        0          0          0         1         0          0         5          0          0          0          1         0          0          0          0          0          0          0          1          0         1
+name_NAD           0          1          0          0         0         0          0         0         0         0          0          0          2         0          0          0          0          0          0        0          0          0         1         0          0         0         10          0          1          0         0          0          0          0          0          0          0          0          0         1
+name_NAG           0          3          4          0         3         0          1         0         0         0          1          0          0         0          0          3          0          8          2        0          3          1         6         1          0         2          0         71          2          1         0          2          1          0          1          2          2          3          2         1
+name_NAP           0          0          1          0         0         0          0         0         0         0          0          0          0         0          0          3          0          0          0        0          0          0         0         1          0         0          1          2          6          6         0          0          0          0          0          0          0          0          0         0
+name_NDP           0          0          0          0         0         0          0         0         0         0          0          0          0         0          0          0          0          0          0        0          0          0         0         0          0         0          1          0          2          0         0          0          0          0          0          0          0          0          0         2
+name_NI            0          1          0          0         0         0          0         0         0         0          0          0          0         0          0          0          0          0          0        0          0          0         0         0          0         0          0          0          0          0         1          0          0          0          0          0          0          0          0         1
+name_PEG           1          0          0          0         0         0          1         0         0         0          0          1          0         0          0          0          0          2          0        0          0          2         0         0          0         1          0          1          0          0         0          2          3          0          0          0          0          0          0         0
+name_PG4           0          0          0          1         0         0          0         0         0         0          1          0          0         0          0          0          0          1          2        0          0          0         0         0          0         1          0          1          0          0         0          1          4          0          0          0          0          0          0         0
+name_PLP           0          0          0          0         0         0          0         0         0         0          0          1          0         1          0          0          0          0          0        1          0          1         2         0          0         0          0          0          0          0         0          0          0         10          1          1          1          0          0         1
+name_PO4           2          0          0          0         4         1          0         2         0         0          0          1          0         0          0          0          0          0          0        0          0          1         0         0          1         1          0          0          0          0         0          0          0          0          4          0          0          6          0         1
+name_SAH           0          0          0          0         0         0          0         0         0         0          0          0          0         0          0          0          0          0          0        0          0          0         0         0          0         0          0          1          0          1         0          0          0          0          0          5          0          0          0         0
+name_SEP           0          0          0          0         3         0          0         1         0         0          0          0          0         0          1          0          0          0          0        0          0          0         1         0          0         0          0          0          0          0         1          0          0          0          0          0          3          0          0         0
+name_SO4           6          0          0          0        26         2          0        21         2         2          3          2          1         1          0          0          0         12          0        6          0          7        14         2          0         6          0          2          0          1         3          0          0          0         44          0          3        224          1        14
+name_TRS           0          0          0          0         0         0          2         0         0         0          0          0          0         0          0          0          0          0          0        0          0          0         0         0          0         0          0          0          0          0         0          0          0          0          0          0          0          0          1         0
+name_ZN            0          1          1          0        10         6          0         0         7        17          0          0          0        16          7          1          0          0          2        0          0          0         2        16          0         0          1          0          1          0         9          0          0          2          5          0          2          7          0       148

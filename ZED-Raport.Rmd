@@ -10,6 +10,8 @@ output:
     toc: yes
 ---
 
+`r format(Sys.Date(), "%B %d, %Y")`
+
 ## 1. Kod wyliczający wykorzystane biblioteki.
 
 
@@ -189,6 +191,10 @@ dane <- dane %>%
 ***
 
 ## 7. Sekcje sprawdzającą korelacje między zmiennymi; sekcja ta powinna zawierać jakąś formę graficznej prezentacji korelacji
+
+***
+
+Poniższe korelogramy reprezentują korelację między poszczególnymi zmiennymi. Zbiór wszystkich kolumn, dla analizowanych danych, jest bardzo duży, dlatego po wnikliwej analizie, można było zauważyć, że kolumny part_XX niosą tą samą informację, jednak dla innego progu odcięcia. Dlatego, aby ograniczyć zbiór porównywanych zmiennych, kolumny podzielone zostały na zbiór zmiennych ogólnych (nie zawierających kolumn part), a także na rozłączne zbiory part. Korelacja nie była liczona dla dwóch różnych zbiorów part (np. między part01 i part02), a jedynie wewnątrz poszczególnych zbiorów part i atrybutów ogólnych. 
 
 ### Przygotowanie danych
 
@@ -432,6 +438,8 @@ podsumowanie <- dane %>%
 
 Liczba wszystkich klas `res_name` wynosi: ** `r count(podsumowanie)` **
 
+Liczba ta jest bardzo duża, dlatego na poniższym wykresie przedstawione zostało 20 najliczniejszych klas.
+
 ### Wykres 20 najliczniejszych klasy 
 
 ```{r, PodsumowanieKlasPart3}
@@ -456,6 +464,13 @@ rozk <- stack(dane %>% select(local_res_atom_non_h_count, local_res_atom_non_h_e
 ggplot(rozk, aes(x = values)) + geom_density(aes(group=ind, colour=ind, fill=ind), alpha=0.3)
 
 ```
+
+***
+
+Analizując powyższy wykres, można zauważyć, że: 
+
+* rozkład liczby atomów jest bardziej skoncentrowany i mieści się w przedziale od 1 do 104. Alanizując natomiast pierwszy (1) i trzeci (20) kwartyl widzimy, że liczba atomów jest o wiele bardziej skupiona prz wartościach minimalnych. Mediana i średnia dla zmiennej `local_res_atom_non_h_count` wynosza odpowiednio 7 i 13.43
+* liczba elektronów obejmuje przedział od 3 do 800. Wartości `local_res_atom_non_h_electron_sum` są bardziej rozrzucone. Jednak analizując pierwszy (30) i trzeci (145) kwartyl widzimy, że wartości te są skoncetrowane bliżej średniej (101.5) i mediany (55), dlatego też na wykresie widać długi "ogon"
 
 ## 10. Próbę odtworzenia następującego wykresu (oś X - liczba elektronów, oś y - liczba atomów)
 
@@ -490,6 +505,8 @@ ggExtra::ggMarginal(
   yparams = list(binwidth = 1, colour = "black", fill = "red")
 )
 ```
+
+Do stworzenia wykresu, wykozystana została biblioteka `ggplot2` i `ggEkstra`. Druga wymieniona biblioteka umożliwiła stowrzenie wykresów na poszczególnych osiach. Do pokolorowania rozkładu wykorzystana została biblioteka `RColorBrewer`, z której skorzystano z typu kolorów `Spectral`. Należało go jednak odwrócić. Aby dokładniej przeanalizowac dane, które były skupione blisko wartości zerowych, wykorzystany został `jitter`.
 
 ## 11. Tabelę pokazującą 10 klas z największą niezgodnością liczby atomów (local_res_atom_non_h_count vs dict_atom_non_h_count) i tabelę pokazującą 10 klas z największą niezgodnością liczby elektronów (local_res_atom_non_h_electron_sum vs dict_atom_non_h_electron_sum;)
 
@@ -552,9 +569,18 @@ for(i in seq_along(part)) {
 
 ```
 
+Powyższe wykresy pokazują rozkład poszczególnych zmiennych dla Part_01. Patrząc na wcześniejsze podsumowanie surowych danych, można zauważyć, że kolumny te posiadały bardzo dużą liczbę wartości pustych, które w dalszej części zostały także zamienione na wartość 0 (stąd też widoczne wysokie rozkłady wartości w okolicach 0)
+
 ## 13. Sekcję sprawdzającą czy na podstawie wartości innych kolumn można przewidzieć liczbę elektronów i atomów oraz z jaką dokładnością można dokonać takiej predykcji; trafność regresji powinna zostać oszacowana na podstawie miar R^2 i RMSE;
 
 ### Przewidywanie liczby atomów
+
+***
+
+Do przewidywania liczby atomów wykorzystany został mogel regresji liniowej. 
+Dodatkowo, porównany został sposób uczenia modelu regresji z wykorzystaniem standardowego próbkowania i walidacji krzyżowej. Analizując dalsze wyniki, oba podejścia nie zmieniły uzyskanych wyników.
+Do analizy atrybutów wykorzystane zostały wszystkie zmienna oprócz zmiennych słownikowych (dist_)
+
 
 ***
 
@@ -571,6 +597,16 @@ training <- proba[ inTraining,]
 testing <- proba[ -inTraining,]
 ```
 
+#####Dla podstawowego modelu `"lm"`
+
+```{r, RegresjaLiczbaAtomowLM, warning = FALSE}
+lmFit <- train(local_res_atom_non_h_count ~ . , 
+               method="lm", 
+               data = training)
+
+```
+
+#####Dla modelu `"lm"` z Cross-Validation
 
 ```{r, RegresjaLiczbaAtomowCV, warning= FALSE}
 
@@ -583,22 +619,10 @@ lmCVFit <- train(local_res_atom_non_h_count ~ . ,
 
 ```
 
-```{r, RegresjaLiczbaAtomowLM, warning = FALSE}
-lmFit <- train(local_res_atom_non_h_count ~ . , 
-               method="lm", 
-               data = training)
 
-```
+#### Lista najbardziej wartościowych atrybutów 
 
-#### Lista najbardziej wartościowych atrybutów
-
-```{r, RegresjaLiczbaAtomowVarImportance}
-
-plot(varImp(lmCVFit), top = 20)
-
-```
-
-LM:
+#####Dla podstawowego modelu `"lm"`
 
 ```{r, RegresjaLiczbaAtomowVarImportanceLM}
 
@@ -606,32 +630,52 @@ plot(varImp(lmFit), top = 20)
 
 ```
 
-#### Trafność regresji
+#####Dla modelu `"lm"` z Cross-Validation
 
-***
+```{r, RegresjaLiczbaAtomowVarImportance}
 
-##### Miara R2
-
-```{r, RegresjaLiczbaAtomowR2}
-
-summary(lmCVFit)$r.squared
+plot(varImp(lmCVFit), top = 20)
 
 ```
 
-##### Miara RMSE
 
-```{r, RegresjaLiczbaAtomowRMSE}
+#### Trafność regresji 
 
-summary(lmCVFit)$sigma
+***
+
+##### Miara RMSE i R^2 dla podstawowego modelu `"lm"`
+
+```{r, RegresjaLiczbaAtomowPredTestLM}
+
+predVal<-predict(lmFit, testing)
+
+modelvalues<-data.frame(obs = testing$local_res_atom_non_h_count, pred=predVal)
+
+defaultSummary(modelvalues)
+
+```
+
+
+##### Miara RMSE i R^2dla modelu `"lm"` z Cross-Validation
+
+```{r, RegresjaLiczbaAtomowPredTest}
+
+predVal<-predict(lmCVFit, testing)
+
+modelvalues<-data.frame(obs = testing$local_res_atom_non_h_count, pred=predVal)
+
+defaultSummary(modelvalues)
 
 ```
 
 ***
 
-#### Wykres predykcji wartości
+#### Wykres predykcji wartości 
+
+#####Dla podstawowego modelu `"lm"`
 
 
-```{r, RegresjaLiczbaAtomowPredValPlot}
+```{r, RegresjaLiczbaAtomowPredValPlotLM}
 
 predictedValues <- predict(lmFit)
 
@@ -639,7 +683,18 @@ plot(training$local_res_atom_non_h_count, predictedValues)
 
 ```
 
-LM:
+
+#####Dla modelu `"lm"` z Cross-Validation
+
+
+```{r, RegresjaLiczbaAtomowPredValPlot}
+
+predictedValues <- predict(lmCVFit)
+
+plot(training$local_res_atom_non_h_count, predictedValues)
+
+```
+
 
 ***
 ***
@@ -660,10 +715,20 @@ inTraining <- createDataPartition(y=proba$local_res_atom_non_h_electron_sum,
 
 training <- proba[ inTraining,]
 testing <- proba[ -inTraining,]
+```
+
+#####Dla podstawowego modelu `"lm"`
+
+```{r, RegresjaLiczbaElektronowLM, warning = FALSE}
+lmFit <- train(local_res_atom_non_h_electron_sum ~ . , 
+               method="lm", 
+               data = training)
 
 ```
 
-```{r, RegresjaLiczbaElektronowCV, warning=FALSE}
+#####Dla modelu `"lm"` z Cross-Validation
+
+```{r, RegresjaLiczbaElektronowCV, warning= FALSE}
 
 ctrl <- trainControl(method = "cv", number = 10)
 
@@ -674,7 +739,18 @@ lmCVFit <- train(local_res_atom_non_h_electron_sum ~ . ,
 
 ```
 
-#### Lista najbardziej wartościowych atrybutów
+
+#### Lista najbardziej wartościowych atrybutów 
+
+#####Dla podstawowego modelu `"lm"`
+
+```{r, RegresjaLiczbaElektronowVarImportanceLM}
+
+plot(varImp(lmFit), top = 20)
+
+```
+
+#####Dla modelu `"lm"` z Cross-Validation
 
 ```{r, RegresjaLiczbaElektronowVarImportance}
 
@@ -682,36 +758,70 @@ plot(varImp(lmCVFit), top = 20)
 
 ```
 
-#### Trafność regresji
+
+#### Trafność regresji 
 
 ***
 
-##### Miara R2
+##### Miara RMSE i R^2 dla podstawowego modelu `"lm"`
 
-```{r, RegresjaLiczbaElektronowR2}
+```{r, RegresjaLiczbaElektronowPredTestLM}
 
-summary(lmCVFit)$r.squared
+predVal<-predict(lmFit, testing)
+
+modelvalues<-data.frame(obs = testing$local_res_atom_non_h_electron_sum, pred=predVal)
+
+defaultSummary(modelvalues)
 
 ```
 
-##### Miara RMSE
 
-```{r, RegresjaLiczbaElektronowRMSE}
+##### Miara RMSE i R^2dla modelu `"lm"` z Cross-Validation
 
-summary(lmCVFit)$sigma
+```{r, RegresjaLiczbaElektronowPredTest}
+
+predVal<-predict(lmCVFit, testing)
+
+modelvalues<-data.frame(obs = testing$local_res_atom_non_h_electron_sum, pred=predVal)
+
+defaultSummary(modelvalues)
 
 ```
 
 ***
 
-#### Wykres predykcji wartości
+#### Wykres predykcji wartości 
 
+#####Dla podstawowego modelu `"lm"`
+
+
+```{r, RegresjaLiczbaElektronowPredValPlotLM}
+
+predictedValues <- predict(lmFit)
+
+plot(training$local_res_atom_non_h_electron_sum, predictedValues)
+
+```
+
+
+#####Dla modelu `"lm"` z Cross-Validation
+
+
+```{r, RegresjaLiczbaElektronowPredValPlot}
+
+predictedValues <- predict(lmCVFit)
+
+plot(training$local_res_atom_non_h_electron_sum, predictedValues)
+
+```
 
 
 ***
 ***
 
 ## 14. Sekcję próbującą stworzyć klasyfikator przewidujący wartość atrybutu res_name (w tej sekcji należy wykorzystać wiedzę z pozostałych punktów oraz wykonać dodatkowe czynności, które mogą poprawić trafność klasyfikacji); trafność klasyfikacji powinna zostać oszacowana na danych inne niż uczące za pomocą mechanizmu (stratyfikowanej!) oceny krzyżowej lub (stratyfikowanego!) zbioru testowego.
+
+Do stworzenia klasyfikatora dla zmiennej `res_name`, wykorzystano wiedzę uzyskaną z powyższych badań.
 
 ### Przygotowanie danych do klasyfikacji
 
@@ -744,6 +854,7 @@ testing <- descr[-inTrain,]
 
 ```
 
+###Filtrowanie zmiennych
 
 ```{r KlasyfikacjaKorelacja}
 res_name_training <- training %>% select(res_name)
@@ -769,6 +880,8 @@ res_name_testing <- res_name_testing %>% mutate(name = paste("name_", res_name, 
 
 ```
 
+###Pre-Processing
+
 ```{r KlasyfikacjaPreProcessing}
 
 xTrans <- preProcess(training)
@@ -783,6 +896,7 @@ testing <- data.frame(res_name_testing, testing)
 
 ```
 
+###Zmienne kontrolne
 
 ```{r KlasyfikacjaControl}
 
@@ -796,8 +910,15 @@ ctrl <- trainControl(method = "repeatedcv",
                      number = 2,
                      repeats = 5)
 
+rfGrid <- expand.grid(mtry = c(10:15))
+
 ```
 
+###Uczenie klasyfikatora 
+
+***
+
+####Dla algorytmu GBM
 
 ```{r KlasyfikacjaGMB, message=FALSE, warning=FALSE}
 gbmFit <- train(name~., 
@@ -808,6 +929,21 @@ gbmFit <- train(name~.,
                 bag.fraction = 0.5, 
                 tuneGrid = gbmGrid)
 ```
+
+####Dla algorytmu Random Forest
+
+```{r KlasyfikacjaRF, message=FALSE, warning=FALSE}
+rfFit <- train(name~., 
+                data = training,
+                method = "rf", 
+                trControl = ctrl,  
+                tuneGrid = rfGrid,
+                ntree = 30)
+```
+
+###Wykresy podsumowania
+
+####Dla algorytmu GBM
 
 ```{r KlasyfikacjaPodsumowanieGbmWykres1}
 
@@ -833,6 +969,30 @@ resampleHist(gbmFit)
 
 ```
 
+####Dla algorytmu Random Forest
+
+```{r KlasyfikacjaPodsumowanieGbmWykres1RF}
+
+plot(rfFit)
+
+```
+
+```{r KlasyfikacjaPodsumowanieGbmWykres2RF}
+
+plot(rfFit, metric = "Kappa")
+
+```
+
+
+```{r KlasyfikacjaPodsumowanieGbmWykres4RF}
+
+resampleHist(rfFit)
+
+```
+
+###Podsumowanie predykcji modeli
+
+####Dla algorytmu GBM
 
 ```{r KlasyfikacjaPred}
 
@@ -844,6 +1004,22 @@ gbmPred <- predict(gbmFit, testing)
 
 matrix <- as.matrix(confusionMatrix(gbmPred, testing$name))
 
-kable(matrix, digits = 3, caption = "Confusion Matrix")
+kable(matrix, digits = 3, caption = "Confusion Matrix dla GBM")
+
+```
+
+####Dla algorytmu Random Forest
+
+```{r KlasyfikacjaPredRF}
+
+rfPred <- predict(rfFit, testing)
+
+```
+
+```{r KlasyfikacjaPredConfMatrixRF}
+
+matrix <- as.matrix(confusionMatrix(rfPred, testing$name))
+
+kable(matrix, digits = 3, caption = "Confusion Matrix dla Random Forest")
 
 ```
