@@ -1,0 +1,849 @@
+---
+title: "Zaawansowana Esploracja Danych - Raport"
+author: "Arkadiusz Rusin"
+date: "21 listopada 2015"
+output: 
+  html_document: 
+    fig_height: 16
+    fig_width: 16
+    keep_md: yes
+    toc: yes
+---
+
+## 1. Kod wyliczający wykorzystane biblioteki.
+
+
+```{r, LadowanieBibliotek, warning=FALSE, message=FALSE}
+library(knitr)
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+library(ggExtra)
+library(corrgram)
+library(RColorBrewer)
+library(caret)
+library(pROC)
+opts_chunk$set(echo=TRUE, cache=TRUE)
+```
+
+***
+
+Powyżej znajduje się lista wykorzystanych bibliotek. 
+
+Dodatkowo ustawione zostały zmienne globalne, które mają zgeneralizować wyświetlanie fragmentów kodu i utrzymywaniu poszczególnych fragmentów w pamięci.
+
+***
+
+## 2. Kod zapewniający powtarzalność wyników przy każdym uruchomieniu raportu na tych samych danych.
+
+```{r, PowtarzalnoscWynikow}
+set.seed(23)
+```
+
+***
+Powtarzalność badań zapeniła funkcja `set.seed()` z odpowiednio ustawionym ziarnem.
+***
+
+## 3. Kod pozwalający wczytać dane z pliku.
+
+```{r, cache=TRUE, LadowanieDanych}
+
+dane <- read.table(file = "all_summary.txt", 
+                   header = FALSE,
+                   sep = ";",
+                   dec = ".",
+                   fill = FALSE, #czy usupełniać kolumny
+                   col.names = strsplit(readLines("all_summary.txt", n = 1), ";")[[1]], 
+                   skip = 1,
+                   na.strings = c('NAN'),
+                   blank.lines.skip = TRUE, #Opóść linie puste
+                   stringsAsFactors = TRUE
+                   )
+
+```
+
+***
+Do wczytania danych wykorzystana została funkcja `read.table()`. By dokonać dokładnego odwzorowania danych, znajdujących się w pliku tekstowym, do obiektu `data.frame`, ustawione zostały odpowiednie argumenty funkcji.
+***
+
+## 4. Kod usuwający z danych wiersze posiadające wartość zmiennej res_name równą: “DA”,“DC”,“DT”, “DU”, “DG”, “DI”,“UNK”, “UNX”, “UNL”, “PR”, “PD”, “Y1”, “EU”, “N”, “15P”, “UQ”, “PX4” lub “NAN”.
+
+```{r, cache=TRUE, CzyszczenieDanych}
+dane <- dane %>% 
+  filter(!is.na(res_name), 
+         !is.nan(res_name),
+         !res_name %in% c('DA','DC','DT','DU','DG','DI','UNK','UNX','UNL','PR','PD','Y1','EU','N','15P','UQ','PX4','NAN')) 
+```
+
+***
+Jako, że zmienna `res_name` w późniejszych badaniach posłużyła jakozmienna klasyfikująca dany ligard, musiała ona być odpowiednio identyfikowana przez określoną wartość. Mając to na uwadze, usunięte zostały wiersze, których wartość zmiennej `res_name` była niedostępna, czyli równa `NA`.
+***
+
+## 5. Kod pozostawiający tylko unikatowe pary wartości (pdb_code, res_name).
+
+```{r, cache=TRUE, WartosciUnikatowe}
+dane <- dane %>% 
+  distinct(pdb_code, res_name)
+```
+
+## 6. Krótkie podsumowanie wartości w każdej kolumnie.
+
+### Tabela przedstawiająca dane po wstępnym czyszczeniu
+
+```{r, cache=TRUE, PodsumowanieOgolne}
+kable(summary(dane))
+```
+
+***
+
+** Wnioski z analizy podsumowanych danych: **
+
+* pewne wiersze zawierają warości niedostępne (`NA`), 
+* niektóre kolumny zawierają stałe wartości,
+* różne typy zmiennych,
+* niektóre kolumny niosą redundantne informacje,
+* pewne zmienne są obliczane na podstawie całego pliku PDB, a nie tylko na podstawie ligandu,
+* niektóre kolumny niosą tą samą informację, różniąc się jedynie progiem odcięcia
+
+***
+
+### Dalsze czyszczenie danych
+
+#### Zamiana wartości `NA` na `0`
+
+```{r, cache=TRUE, CzyszczenieWartosciPustych}
+dane <- dane %>% 
+  replace(is.na(.), 0)
+```
+
+#### Przefiltrowanie istotności zmiennych
+
+***
+
+Po ogólnej analizie danych, można zauważyć, że pewne kolumny zawierają stałe wartości:
+
+* **wartość 0 przyjmują:** `local_BAa`, `local_NPa`, `local_Ra`, `local_RGa`, `local_SRGa`, `local_CCSa`, `local_CCPa`, `local_ZOa`, `ocal_ZDa`, `local_ZD_minus_a`, `local_ZD_plus_a`
+
+* **Wartość *'DELFWT'* przyjmuje:** `fo_col`
+
+* **Wartość *'PHDELWT'* przyjmuje:** `fc_col`
+
+* **Wartość 0 przyjmuje:** `weight_col`
+
+* **Wartość 0.2 przyjmuje:** `grid_space`
+
+* **Wartość 1.9 przyjmuje:** `solvent_radius`
+
+* **Wartość 1.4 przyjmuje:** `solvent_opening_radius`
+
+* **Wartość 2 przyjmuje:** `resolution_max_limit`
+
+* **Wartość 2.5 przyjmuje:** `part_step_FoFc_std_min`
+
+* **Wartość 7.1 przyjmuje:** `part_step_FoFc_std_max`
+
+* **Wartość 0.5 przyjmuje:** `part_step_FoFc_std_step`
+
+***
+
+Dlatego do dalszej analizy danych, nie bedziemy wykorzystywać wymienionych kolumn
+
+```{r, cache=TRUE, CzyszczenieDanych2}
+dane <- dane %>%
+  select(-(local_BAa:local_ZD_plus_a), -(fo_col:resolution_max_limit), -(part_step_FoFc_std_min:part_step_FoFc_std_step))
+```
+
+***
+
+W zbiorze danych znajdują się kolumny, których wartości są obliczane na podstawie całego pliku PDB, a nie tylko na podstawie ligandu:
+
+* `TwoFoFc_mean`, `TwoFoFc_std`, `TwoFoFc_square_std`, `TwoFoFc_min`, `TwoFoFc_max`
+
+* `Fo_mean`, `Fo_std`, `Fo_square_std`, `Fo_min`, `Fo_max`
+
+* `FoFc_mean`, `FoFc_std`, `FoFc_square_std`, `FoFc_min`, `FoFc_max`
+
+* `Fc_mean`, `Fc_std`, `Fc_square_std`, `Fc_min`, `Fc_max`
+
+* `resolution`
+
+* `TwoFoFc_bulk_mean`, `TwoFoFc_bulk_std`, `TwoFoFc_void_mean`, `TwoFoFc_void_std`, `TwoFoFc_modeled_mean`, `TwoFoFc_modeled_std`
+
+* `Fo_bulk_mean`, `Fo_bulk_std`, `Fo_void_mean`, `Fo_void_std`, `Fo_modeled_mean`, `Fo_modeled_std`
+
+* `Fc_bulk_mean`, `Fc_bulk_std`, `Fc_void_mean`, `Fc_void_std`, `Fc_modeled_mean`, `Fc_modeled_std`
+
+* `FoFc_bulk_mean`, `FoFc_bulk_std`, `FoFc_void_mean`, `FoFc_void_std`, `FoFc_modeled_mean`, `FoFc_modeled_std`
+
+* `TwoFoFc_void_fit_binormal_mean1`, `TwoFoFc_void_fit_binormal_std1`, `TwoFoFc_void_fit_binormal_mean2`, `TwoFoFc_void_fit_binormal_std2`, `TwoFoFc_void_fit_binormal_scale`, `TwoFoFc_solvent_fit_normal_mean`, `TwoFoFc_solvent_fit_normal_std`
+
+***
+
+Do dalszej analizy, nie bedziemy wykorzystywać kolumn wymienionych wyżej
+
+```{r, cache=TRUE, CzyszczenieDanych3}
+dane <- dane %>%
+  select(-(TwoFoFc_mean:Fc_max), -resolution, -(TwoFoFc_bulk_mean:TwoFoFc_solvent_fit_normal_std))
+```
+
+***
+
+## 7. Sekcje sprawdzającą korelacje między zmiennymi; sekcja ta powinna zawierać jakąś formę graficznej prezentacji korelacji
+
+### Przygotowanie danych
+
+***
+Filtrowanie zbioru danych i eliminacja kolumn zawierających wartości stałe i tekstowe
+***
+
+```{r, cache=TRUE, Korelacja}
+
+# Dane bez stałych wartości i wartości tekstowych
+dane_obliczenia <- dane %>%
+  select(-(title:chain_id), -local_parts, -local_min, -part_00_blob_parts) 
+
+```
+
+### Korelogram zmiennych ogólnych
+
+***
+Są to wszystkie zmienne ogólne (nie zawierają kolumn part_XX_)
+***
+
+```{r, cache=TRUE, KorelacjaAll}
+corrgram(dane_obliczenia %>%
+            select(-(part_00_blob_electron_sum:part_09_density_sqrt_E3)), 
+         order=TRUE, 
+         main="Korelogram dla podstawowych atrybutów", 
+         lower.panel=panel.shade, 
+         upper.panel=panel.pie, 
+         diag.panel=panel.minmax, 
+         text.panel=panel.txt)
+```
+
+### Korelogram zmiennych ogólnych i part_00
+
+***
+Są to wszystkie zmienne ogólne i kolumny z part_00
+***
+
+```{r, cache= TRUE, KorelacjaPart00}
+# Dane dla part_00
+corrgram(data.frame(dane_obliczenia %>%
+                                select(-(part_00_blob_electron_sum:part_09_density_sqrt_E3)), 
+                    dane_obliczenia %>%
+                                select(part_00_blob_electron_sum:part_00_density_sqrt_E3)), 
+         order=TRUE, 
+         main="Korelogram dla atrybutów wraz z part_00", 
+         lower.panel=panel.shade, 
+         upper.panel=panel.pie, 
+         diag.panel=panel.minmax, 
+         text.panel=panel.txt)
+```
+
+### Korelogram zmiennych ogólnych i part_01
+
+***
+Są to wszystkie zmienne ogólne i kolumny z part_01
+***
+
+```{r, cache=TRUE, KorelacjaPart01}
+# Dane dla part_01
+corrgram(data.frame(dane_obliczenia %>%
+                                select(-(part_00_blob_electron_sum:part_09_density_sqrt_E3)), 
+                    dane_obliczenia %>%
+                                select(part_01_blob_electron_sum:part_01_density_sqrt_E3)), 
+         order=TRUE, 
+         main="Korelogram dla atrybutów wraz z part_01", 
+         lower.panel=panel.shade, 
+         upper.panel=panel.pie, 
+         diag.panel=panel.minmax, 
+         text.panel=panel.txt)
+```
+
+### Korelogram zmiennych ogólnych i part_02
+
+***
+Są to wszystkie zmienne ogólne i kolumny z part_02
+***
+
+```{r, cache=TRUE, KorelacjaPart02}
+# Dane dla part_02
+corrgram(data.frame(dane_obliczenia %>%
+                                select(-(part_00_blob_electron_sum:part_09_density_sqrt_E3)), 
+                    dane_obliczenia %>%
+                                select(part_02_blob_electron_sum:part_02_density_sqrt_E3)), 
+         order=TRUE, 
+         main="Korelogram dla atrybutów wraz z part_02", 
+         lower.panel=panel.shade, 
+         upper.panel=panel.pie, 
+         diag.panel=panel.minmax, 
+         text.panel=panel.txt)
+```
+
+### Korelogram zmiennych ogólnych i part_03
+
+***
+Są to wszystkie zmienne ogólne i kolumny z part_03
+***
+
+```{r, cache=TRUE, KorelacjaPart03}
+# Dane dla part_03
+corrgram(data.frame(dane_obliczenia %>%
+                                select(-(part_00_blob_electron_sum:part_09_density_sqrt_E3)), 
+                    dane_obliczenia %>%
+                                select(part_03_blob_electron_sum:part_03_density_sqrt_E3)), 
+         order=TRUE, 
+         main="Korelogram dla atrybutów wraz z part_03", 
+         lower.panel=panel.shade, 
+         upper.panel=panel.pie, 
+         diag.panel=panel.minmax, 
+         text.panel=panel.txt)
+```
+
+### Korelogram zmiennych ogólnych i part_04
+
+***
+Są to wszystkie zmienne ogólne i kolumny z part_04
+***
+
+```{r, cache=TRUE, KorelacjaPart04}
+# Dane dla part_04
+corrgram(data.frame(dane_obliczenia %>%
+                                select(-(part_00_blob_electron_sum:part_09_density_sqrt_E3)), 
+                    dane_obliczenia %>%
+                                select(part_04_blob_electron_sum:part_04_density_sqrt_E3)), 
+         order=TRUE, 
+         main="Korelogram dla atrybutów wraz z part_04", 
+         lower.panel=panel.shade, 
+         upper.panel=panel.pie, 
+         diag.panel=panel.minmax, 
+         text.panel=panel.txt)
+```
+
+### Korelogram zmiennych ogólnych i part_05
+
+***
+Są to wszystkie zmienne ogólne i kolumny z part_05
+***
+
+```{r, cache=TRUE, KorelacjaPart05}
+# Dane dla part_05
+corrgram(data.frame(dane_obliczenia %>%
+                                select(-(part_00_blob_electron_sum:part_09_density_sqrt_E3)), 
+                    dane_obliczenia %>%
+                                select(part_05_blob_electron_sum:part_05_density_sqrt_E3)), 
+         order=TRUE, 
+         main="Korelogram dla atrybutów wraz z part_05", 
+         lower.panel=panel.shade, 
+         upper.panel=panel.pie, 
+         diag.panel=panel.minmax, 
+         text.panel=panel.txt)
+```
+
+### Korelogram zmiennych ogólnych i part_06
+
+***
+Są to wszystkie zmienne ogólne i kolumny z part_06
+***
+
+```{r, cache=TRUE, KorelacjaPart06}
+# Dane dla part_06
+corrgram(data.frame(dane_obliczenia %>%
+                                select(-(part_00_blob_electron_sum:part_09_density_sqrt_E3)), 
+                    dane_obliczenia %>%
+                                select(part_06_blob_electron_sum:part_06_density_sqrt_E3)), 
+         order=TRUE, 
+         main="Korelogram dla atrybutów wraz z part_06", 
+         lower.panel=panel.shade, 
+         upper.panel=panel.pie, 
+         diag.panel=panel.minmax, 
+         text.panel=panel.txt)
+```
+
+### Korelogram zmiennych ogólnych i part_07
+
+***
+Są to wszystkie zmienne ogólne i kolumny z part_07
+***
+
+```{r, cache=TRUE, KorelacjaPart07}
+# Dane dla part_07
+corrgram(data.frame(dane_obliczenia %>%
+                                select(-(part_00_blob_electron_sum:part_09_density_sqrt_E3)), 
+                    dane_obliczenia %>%
+                                select(part_07_blob_electron_sum:part_07_density_sqrt_E3)), 
+         order=TRUE, 
+         main="Korelogram dla atrybutów wraz z part_07", 
+         lower.panel=panel.shade, 
+         upper.panel=panel.pie, 
+         diag.panel=panel.minmax, 
+         text.panel=panel.txt)
+```
+
+### Korelogram zmiennych ogólnych i part_08
+
+***
+Są to wszystkie zmienne ogólne i kolumny z part_08
+***
+
+```{r, cache=TRUE, KorelacjaPart08}
+# Dane dla part_08
+corrgram(data.frame(dane_obliczenia %>%
+                                select(-(part_00_blob_electron_sum:part_09_density_sqrt_E3)), 
+                    dane_obliczenia %>%
+                                select(part_08_blob_electron_sum:part_08_density_sqrt_E3)), 
+         order=TRUE, 
+         main="Korelogram dla atrybutów wraz z part_08", 
+         lower.panel=panel.shade, 
+         upper.panel=panel.pie, 
+         diag.panel=panel.minmax, 
+         text.panel=panel.txt)
+```
+
+### Korelogram zmiennych ogólnych i part_09
+
+***
+Są to wszystkie zmienne ogólne i kolumny z part_09
+***
+
+```{r, cache=TRUE, KorelacjaPart09}
+# Dane dla part_09
+corrgram(data.frame(dane_obliczenia %>%
+                                select(-(part_00_blob_electron_sum:part_09_density_sqrt_E3)), 
+                    dane_obliczenia %>%
+                                select(part_09_blob_electron_sum:part_09_density_sqrt_E3)), 
+         order=TRUE, 
+         main="Korelogram dla atrybutów wraz z part_09", 
+         lower.panel=panel.shade, 
+         upper.panel=panel.pie, 
+         diag.panel=panel.minmax, 
+         text.panel=panel.txt)
+```
+
+## 8. Określenie ile przykładów ma każda z klas `res_name`
+
+
+```{r, PodsumowanieKlasPart1}
+podsumowanie <- dane %>%
+  group_by(res_name) %>%
+  summarise(n=n()) #Podliczenie
+```
+
+Liczba wszystkich klas `res_name` wynosi: ** `r count(podsumowanie)` **
+
+### Wykres 20 najliczniejszych klasy 
+
+```{r, PodsumowanieKlasPart3}
+podsumowanie <- podsumowanie %>%
+  arrange(desc(n)) %>%
+  slice(1:20)
+
+podsumowanie$res_name <- factor(podsumowanie$res_name, levels=unique(podsumowanie$res_name))
+
+ggplot(podsumowanie , aes(x = res_name, y = n, order = desc(n))) + 
+  geom_bar(stat="identity") + 
+  theme_bw()
+
+```
+
+
+## 9. Wykresy rozkładów liczby atomów (local_res_atom_non_h_count) i elektronów (local_res_atom_non_h_electron_sum)
+
+```{r, Rozklad}
+rozk <- stack(dane %>% select(local_res_atom_non_h_count, local_res_atom_non_h_electron_sum))
+
+ggplot(rozk, aes(x = values)) + geom_density(aes(group=ind, colour=ind, fill=ind), alpha=0.3)
+
+```
+
+## 10. Próbę odtworzenia następującego wykresu (oś X - liczba elektronów, oś y - liczba atomów)
+
+```{r, Rozklad2}
+
+d <- dane %>%
+  mutate(y = 6+(round(jitter(local_res_atom_non_h_count, factor = 2.5, amount = 0))), x = 50+(round(jitter(local_res_atom_non_h_electron_sum, factor = 3.5, amount = 0)))) %>% select(x, y)
+
+rozklad <- ggplot(d, 
+  aes(x = x, 
+      y = y)) +
+  stat_density2d(geom="tile", aes(fill = ..density..), contour = FALSE) + #, position = position_jitter()) + 
+  scale_fill_gradientn(colours=rev(brewer.pal(11, "Spectral"))) +
+  coord_cartesian(xlim = c(0,650), 
+                  ylim = c(0,100)) +
+  scale_x_continuous(breaks = seq(0,600,100)) +
+  scale_y_continuous(breaks = seq(0,100,20)) +
+  theme(legend.position="none", 
+        axis.title.x = element_blank(), 
+        axis.title.y = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        panel.background = element_rect(fill = rgb(0.368, 0.309, 0.635))) 
+
+#Wykresy margin
+ggExtra::ggMarginal(
+  rozklad,
+  type = 'histogram',
+  margins = 'both',
+  size = 5,
+  xparams = list(binwidth = 6, colour = "black", fill = "red"),
+  yparams = list(binwidth = 1, colour = "black", fill = "red")
+)
+```
+
+## 11. Tabelę pokazującą 10 klas z największą niezgodnością liczby atomów (local_res_atom_non_h_count vs dict_atom_non_h_count) i tabelę pokazującą 10 klas z największą niezgodnością liczby elektronów (local_res_atom_non_h_electron_sum vs dict_atom_non_h_electron_sum;)
+
+### Niezgodność liczby atomów
+
+```{r, cache=TRUE, NiezgodnoscAtomy}
+kable(dane %>%
+  mutate(blad = abs(dict_atom_non_h_count - local_res_atom_non_h_count)) %>%
+  select(res_name, blad) %>%
+  group_by(res_name) %>%
+  summarise(minimum = min(blad),
+            maximum = max(blad),
+            warjancja = var(blad),
+            odch_stand = sd(blad)) %>%
+  arrange(desc(maximum)) %>%
+  slice(1:10))
+
+
+```
+
+### Niezgodność liczby elektronów
+
+```{r, cache=TRUE, NiezgodnoscElektrony}
+kable(dane %>%
+  mutate(blad = abs(dict_atom_non_h_electron_sum - local_res_atom_non_h_electron_sum)) %>%
+  select(res_name, blad) %>%
+  group_by(res_name) %>%
+  summarise(minimum = min(blad),
+            maximum = max(blad),
+            warjancja = var(blad),
+            odch_stand = sd(blad)) %>%
+  arrange(desc(maximum)) %>%
+  slice(1:10))
+
+
+```
+
+## 12. Sekcję pokazującą rozkład wartości wszystkich kolumn zaczynających się od part_01 z zaznaczeniem (graficznym i liczbowym) średniej wartości.
+
+```{r RozkladKolumnPart02, warning=FALSE, message=FALSE}
+
+part <- dane %>% select(part_01_blob_electron_sum:part_01_density_sqrt_E3)
+
+for(i in seq_along(part)) {
+  
+  srednia <- mean(part[,i], rm.na=TRUE)
+  min <- min(part[,i], rm.na=TRUE)
+  max <- max(part[,i], rm.na=TRUE)
+  
+  w <- ggplot(data = part, aes(x=part[,i], label = srednia)) + 
+    scale_x_continuous(colnames(part %>% select(i))) +
+    scale_y_continuous("Liczność") +
+    geom_histogram(aes(y = ..density.., fill = ..count..)) + geom_density(colour = "red", size = 1.5) +
+    scale_fill_gradientn(colours=brewer.pal(11, "Spectral")) +
+    geom_vline(data = NULL, aes(xintercept=srednia), linetype = "dashed", size=2) +
+    ggtitle(paste("Rozkład wartości dla atrybutu ", colnames(part %>% select(i)), " średnia=", srednia, sep = "")) 
+  
+  print(w)
+}
+
+```
+
+## 13. Sekcję sprawdzającą czy na podstawie wartości innych kolumn można przewidzieć liczbę elektronów i atomów oraz z jaką dokładnością można dokonać takiej predykcji; trafność regresji powinna zostać oszacowana na podstawie miar R^2 i RMSE;
+
+### Przewidywanie liczby atomów
+
+***
+
+#### Budowanie modelu
+
+```{r, RegresjaLiczbaAtomow, warning = FALSE}
+proba <- dane %>% select(-(title:chain_id), -(dict_atom_non_h_count:dict_atom_S_count))
+
+inTraining <- createDataPartition(y=proba$local_res_atom_non_h_count, 
+                                  p= .75, 
+                                  list = FALSE)
+
+training <- proba[ inTraining,]
+testing <- proba[ -inTraining,]
+```
+
+
+```{r, RegresjaLiczbaAtomowCV, warning= FALSE}
+
+ctrl <- trainControl(method = "cv", number = 10)
+
+lmCVFit <- train(local_res_atom_non_h_count ~ . , 
+                 method="lm", 
+                 data = training, 
+                 trControl = ctrl)
+
+```
+
+```{r, RegresjaLiczbaAtomowLM, warning = FALSE}
+lmFit <- train(local_res_atom_non_h_count ~ . , 
+               method="lm", 
+               data = training)
+
+```
+
+#### Lista najbardziej wartościowych atrybutów
+
+```{r, RegresjaLiczbaAtomowVarImportance}
+
+plot(varImp(lmCVFit), top = 20)
+
+```
+
+LM:
+
+```{r, RegresjaLiczbaAtomowVarImportanceLM}
+
+plot(varImp(lmFit), top = 20)
+
+```
+
+#### Trafność regresji
+
+***
+
+##### Miara R2
+
+```{r, RegresjaLiczbaAtomowR2}
+
+summary(lmCVFit)$r.squared
+
+```
+
+##### Miara RMSE
+
+```{r, RegresjaLiczbaAtomowRMSE}
+
+summary(lmCVFit)$sigma
+
+```
+
+***
+
+#### Wykres predykcji wartości
+
+
+```{r, RegresjaLiczbaAtomowPredValPlot}
+
+predictedValues <- predict(lmFit)
+
+plot(training$local_res_atom_non_h_count, predictedValues)
+
+```
+
+LM:
+
+***
+***
+
+### Przewidywanie liczby elektronów
+
+
+***
+
+#### Budowanie modelu
+
+```{r, RegresjaLiczbaElektronow, warning = FALSE}
+proba <- dane %>% select(-(title:chain_id), -(dict_atom_non_h_count:dict_atom_S_count))
+
+inTraining <- createDataPartition(y=proba$local_res_atom_non_h_electron_sum, 
+                                  p= .75, 
+                                  list = FALSE)
+
+training <- proba[ inTraining,]
+testing <- proba[ -inTraining,]
+
+```
+
+```{r, RegresjaLiczbaElektronowCV, warning=FALSE}
+
+ctrl <- trainControl(method = "cv", number = 10)
+
+lmCVFit <- train(local_res_atom_non_h_electron_sum ~ . , 
+                 method="lm", 
+                 data = training, 
+                 trControl = ctrl)
+
+```
+
+#### Lista najbardziej wartościowych atrybutów
+
+```{r, RegresjaLiczbaElektronowVarImportance}
+
+plot(varImp(lmCVFit), top = 20)
+
+```
+
+#### Trafność regresji
+
+***
+
+##### Miara R2
+
+```{r, RegresjaLiczbaElektronowR2}
+
+summary(lmCVFit)$r.squared
+
+```
+
+##### Miara RMSE
+
+```{r, RegresjaLiczbaElektronowRMSE}
+
+summary(lmCVFit)$sigma
+
+```
+
+***
+
+#### Wykres predykcji wartości
+
+
+
+***
+***
+
+## 14. Sekcję próbującą stworzyć klasyfikator przewidujący wartość atrybutu res_name (w tej sekcji należy wykorzystać wiedzę z pozostałych punktów oraz wykonać dodatkowe czynności, które mogą poprawić trafność klasyfikacji); trafność klasyfikacji powinna zostać oszacowana na danych inne niż uczące za pomocą mechanizmu (stratyfikowanej!) oceny krzyżowej lub (stratyfikowanego!) zbioru testowego.
+
+### Przygotowanie danych do klasyfikacji
+
+```{r KlasyfikacjaDane, warning=FALSE}
+
+da <- dane %>%
+  group_by(res_name) %>%
+  summarise(liczba = n()) %>%
+  filter(liczba > 50) 
+
+#res_name <- dane %>%
+#  filter(res_name %in% da$res_name) %>%
+#  select(res_name) 
+
+descr <- dane %>%
+  filter(res_name %in% da$res_name) %>%
+  select(-(res_id:dict_atom_S_count), -local_min, -title, -pdb_code) 
+
+cols = 2:length(descr)
+descr[,cols] = apply(descr[,cols], 2, function(x) as.numeric(x))
+
+#res_name <- res_name$res_name
+
+predictors <- names(descr)[names(descr) != "res_name"]
+
+inTrain <- createDataPartition(descr$res_name, p = 3/4, list = FALSE)
+
+training <- descr[inTrain,]
+testing <- descr[-inTrain,]
+
+```
+
+
+```{r KlasyfikacjaKorelacja}
+res_name_training <- training %>% select(res_name)
+res_name_testing<- testing %>% select(res_name)
+
+training <- training %>% select(-res_name)
+testing <- testing %>% select(-res_name)
+
+ncol(training)
+
+descrCorr <- cor(training)
+
+highCorr <- findCorrelation(descrCorr, 0.90)
+
+
+training <- training[, -highCorr]
+testing <- testing[, -highCorr]
+
+ncol(training)
+
+res_name_training <- res_name_training %>% mutate(name = paste("name_", res_name, sep="")) %>% select(name)
+res_name_testing <- res_name_testing %>% mutate(name = paste("name_", res_name, sep="")) %>% select(name)
+
+```
+
+```{r KlasyfikacjaPreProcessing}
+
+xTrans <- preProcess(training)
+training <- predict(xTrans, training)
+testing <- predict(xTrans, testing)
+
+```
+
+```{r KlasyfikacjaClass}
+training <- data.frame(res_name_training, training)
+testing <- data.frame(res_name_testing, testing)
+
+```
+
+
+```{r KlasyfikacjaControl}
+
+gbmGrid <- expand.grid(interaction.depth = c(1, 5, 10), 
+                       n.trees = (5:10)*2, 
+                       shrinkage = 0.1,
+                       n.minobsinnode = 20)
+
+
+ctrl <- trainControl(method = "repeatedcv", 
+                     number = 2,
+                     repeats = 5)
+
+```
+
+
+```{r KlasyfikacjaGMB, message=FALSE, warning=FALSE}
+gbmFit <- train(name~., 
+                data = training,
+                method = "gbm", 
+                trControl = ctrl, 
+                verbose = FALSE,
+                bag.fraction = 0.5, 
+                tuneGrid = gbmGrid)
+```
+
+```{r KlasyfikacjaPodsumowanieGbmWykres1}
+
+plot(gbmFit)
+
+```
+
+```{r KlasyfikacjaPodsumowanieGbmWykres2}
+
+plot(gbmFit, metric = "Kappa")
+
+```
+
+```{r KlasyfikacjaPodsumowanieGbmWykres3}
+
+plot(gbmFit, plotType = "level")
+
+```
+
+```{r KlasyfikacjaPodsumowanieGbmWykres4}
+
+resampleHist(gbmFit)
+
+```
+
+
+```{r KlasyfikacjaPred}
+
+gbmPred <- predict(gbmFit, testing)
+
+```
+
+```{r KlasyfikacjaPredConfMatrix}
+
+matrix <- as.matrix(confusionMatrix(gbmPred, testing$name))
+
+kable(matrix, digits = 3, caption = "Confusion Matrix")
+
+```
