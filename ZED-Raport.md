@@ -4,6 +4,10 @@ Arkadiusz Rusin
 
 grudzień 11, 2015
 
+## 0. Analiza wyników
+
+
+
 ## 1. Kod wyliczający wykorzystane biblioteki.
 
 
@@ -978,7 +982,7 @@ plot(training$local_res_atom_non_h_electron_sum, predictedValues)
 
 ## 14. Sekcję próbującą stworzyć klasyfikator przewidujący wartość atrybutu res_name (w tej sekcji należy wykorzystać wiedzę z pozostałych punktów oraz wykonać dodatkowe czynności, które mogą poprawić trafność klasyfikacji); trafność klasyfikacji powinna zostać oszacowana na danych inne niż uczące za pomocą mechanizmu (stratyfikowanej!) oceny krzyżowej lub (stratyfikowanego!) zbioru testowego.
 
-Do stworzenia klasyfikatora dla zmiennej `res_name`, wykorzystano wiedzę uzyskaną z powyższych badań.
+Do stworzenia klasyfikatora dla zmiennej `res_name`, wykorzystano wiedzę uzyskaną z powyższych badań. Znając dużą liczbę różnych wartości dla zmiennej `res_name`, klasyfikator został wykorzystany do zbudowania modelu dla wartości zmiennych przekraczających liczbę 50. Tym samym ograniczyło to liczbę analizowanego zbioru. Kolejnym wnioskiem wywinioskowanym z eksploracji danych było dostrzeżenie korelacji między zmiennymi. Powyższe korelogramy pokazały, że niektóre kolumny nie są ze sobą powiązane i tym samym niepotrzebne jest porównywanie ich do stworzenia modelu. Dlatego ustawiony został próg korelacji 0.90. Do budowy klasyfikacji wykorzystane zostały dwa modele - jeden z nich opierał się na algorytmie GBM, a drugi na Random Forest. Analizując poszczególne wyniki, algorytm Random Forest stworzył model, który okazał się bardziej trafnym (wyższy wskażnik Kappa i Accuracy). Analizując także Confussion Matrix, można dostrzec, że klasyfikator popełniał wysoki błąd dla niektórych ligardów.
 
 ### Przygotowanie danych do klasyfikacji
 
